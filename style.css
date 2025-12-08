@@ -1,0 +1,27 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color: white;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+header {
+    height: 70px;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(24px, 4vw, 39px);
+    background: url('image.png') no-repeat;
+    background-size: cover;
+    background-color: #235daf;
+}
+
+@media (max-width: 370px) {
+    header {
+        background: none;
+        background-size: none;
+        background-color: #235daf;
+    }
+}
