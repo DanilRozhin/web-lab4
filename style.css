@@ -18,6 +18,46 @@ header {
     background-color: #235daf;
 }
 
+.main-container {
+    display: flex;
+}
+
+.cities-sidebar {
+    width: 240px;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid black;
+    padding: 2px;
+    padding-right: 12px;
+    max-height: 55px;
+}
+
+.sidebar-header {
+    padding-left: 8px;
+    color: #235daf;
+    font-size: 21px;
+}
+
+.add-city-btn {
+    width: 30px;
+    height: 25px;
+    color: white;
+    background-color: #235daf;
+    border: none;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 @media (max-width: 370px) {
     header {
         background: none;
