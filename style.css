@@ -76,6 +76,10 @@ header {
     margin: 10px;
 }
 
+.sidebar-list li {
+    margin-bottom: 9px;
+}
+
 .sidebar-list .chosed {
     font-weight: bold;
 }
@@ -93,12 +97,63 @@ header {
     color: #235;
 }
 
-.empty-state .chosed {
-    font-weight: bold;
-}
-
 .empty-img {
     width: 75%;
+}
+
+.city-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.city-modal .modal-content {
+    background: white;
+    padding: 25px;
+    border: 2px solid #236;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.city-modal .modal-header {
+    margin: 0 0 15px 0;
+    color: #236;
+    text-align: center;
+}
+
+.city-modal input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #236;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.city-modal button {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #236;
+    border-radius: 5px;
+    background: white;
+    color: #236;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 @media (max-width: 600px) {
