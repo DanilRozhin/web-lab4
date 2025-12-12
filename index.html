@@ -24,6 +24,7 @@
         </aside>
 
         <main class="weather-content">
+            <button class="refresh-btn">Refresh</button>
             <div class="empty-state">
                 <h2>Welcome to weather-info!</h2>
                 <p>To see weather forecast, please, select a city from list or add a new one.</p>
@@ -36,7 +37,11 @@
     <div class="city-modal">
         <div class="modal-content">
             <h3 class="modal-header">Add city</h3>
-            <input type="text" class="input-city">
+
+            <div class="input-with-suggestions">
+                <input type="text" class="input-city">
+                <div class="suggestions-list" style="display: none;"></div>
+            </div>
 
             <div class="modal-message"></div>
 

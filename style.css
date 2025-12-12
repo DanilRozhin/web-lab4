@@ -87,18 +87,53 @@ header {
 .weather-content {
     width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(70vh - 70px);
+    flex-direction: column;
+    min-height: calc(100vh - 70px);
+    position: relative;
 }
 
-.empty-state {
-    text-align: center;
+.refresh-btn {
+    position: relative;
+    color: white;
+    background-color: #235;
+    border: 2px solid #235;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    margin: 15px 10px;
+    height: 30px;
+    width: 80px;
+    z-index: 10;
+}
+
+.refresh-btn:hover {
+    background-color: white;
     color: #235;
 }
 
+.empty-state {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #235;
+    padding-top: 40px;
+    font-size: 15px;
+}
+
 .empty-img {
-    width: 75%;
+    width: 60%;
 }
 
 .city-modal {
@@ -130,6 +165,26 @@ header {
     text-align: center;
 }
 
+.input-with-suggestions {
+    position: relative;
+    width: 100%;
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-top: none;
+    background: white;
+    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .city-modal input {
     width: 100%;
     padding: 10px;
@@ -138,6 +193,7 @@ header {
     font-size: 16px;
     box-sizing: border-box;
     text-align: center;
+    position: relative;
 }
 
 .modal-buttons {
@@ -152,6 +208,7 @@ header {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    transition: all 0.3s ease;
 }
 
 .add-modal-btn {
