@@ -112,12 +112,13 @@ header {
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    display: none;
 }
 
 .city-modal .modal-content {
     background: white;
     padding: 25px;
-    border: 2px solid #236;
+    border: 2px solid #235;
     border-radius: 10px;
     width: 300px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
@@ -125,22 +126,22 @@ header {
 
 .city-modal .modal-header {
     margin: 0 0 15px 0;
-    color: #236;
+    color: #235;
     text-align: center;
 }
 
 .city-modal input {
     width: 100%;
     padding: 10px;
-    border: 2px solid #236;
+    border: 2px solid #235;
     border-radius: 5px;
-    margin-bottom: 15px;
     font-size: 16px;
     box-sizing: border-box;
     text-align: center;
 }
 
 .modal-buttons {
+    margin-top: 10px;
     display: flex;
     gap: 10px;
 }
@@ -148,12 +149,58 @@ header {
 .city-modal button {
     flex: 1;
     padding: 10px;
-    border: 2px solid #236;
     border-radius: 5px;
-    background: white;
-    color: #236;
     cursor: pointer;
     font-weight: bold;
+}
+
+.add-modal-btn {
+    border: 2px solid #235;
+    color: white;
+    background: #235;
+}
+
+.add-modal-btn:hover {
+    background-color: white;
+    color: #235;
+}
+
+.cancel-modal-btn {
+    border: 2px solid rgb(202, 107, 107);
+    color: white;
+    background: rgb(202, 107, 107);
+}
+
+.cancel-modal-btn:hover {
+    color:rgb(202, 107, 107);
+    background: white;
+}
+
+.modal-message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.modal-message.error {
+    display: block;
+    background-color: #ffebee;
+    color: rgb(202, 107, 107);
+}
+
+.modal-message.exists {
+    display: block;
+    background-color: rgb(228, 245, 161);
+    color: rgb(92, 89, 8);
+}
+
+.modal-message.success {
+    display: block;
+    background-color: #d0fbd3;
+    color: #235;
 }
 
 @media (max-width: 600px) {

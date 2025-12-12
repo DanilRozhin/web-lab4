@@ -16,10 +16,111 @@ const cities = {
     'New-York': { lat: 40.43, lon: -73.59 },
     'Saint-Petersburg': { lat: 59.57, lon: 30.19 },
 }
+let user_cities = [];
 
 function main() {
+    initModalListeners();
     addListeners();
     getPosition();
+}
+
+function initModalListeners() {
+    const modal = document.querySelector('.city-modal');
+    const input = modal.querySelector('.input-city');
+    const cancelBtn = document.querySelector('.cancel-modal-btn');
+    const addBtn = document.querySelector('.add-city-btn');
+    
+    document.querySelector('.add-city-btn').addEventListener('click', function(event) {
+        modal.style.display = 'flex';
+        input.placeholder = 'Enter city...';
+        input.focus();
+        clearMessage();
+    });
+
+    document.querySelector('.add-modal-btn').addEventListener('click', function(event) {
+        const cityName = input.value.trim().toLowerCase();
+        const cleanCity = cityName
+            .toLowerCase()
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join('-');
+
+        const isAdded = addCityToList(cleanCity);
+        if (isAdded === 'added') {
+            user_cities.push(cleanCity);
+            console.log(`Added ${cleanCity}`);
+            input.value = '';
+            showMessage('success', `City ${cleanCity} added successfully!`);
+            addCityAside(cleanCity);
+        }
+        else if (isAdded === 'exists') {
+            showMessage('exists', `City "${cleanCity}" is already in your list.`);
+            console.log(`${cleanCity} already exists`);
+        }
+        else if (isAdded === 'not found') {
+            showMessage('error', `City "${cleanCity}" not found.`);
+            console.log(`${cleanCity} did not found`);
+        }
+    });
+
+    document.querySelector('.cancel-modal-btn').addEventListener('click', function(event) {
+        modal.style.display = 'none';
+        input.value = '';
+        const message = document.querySelector('.modal-message');
+        clearMessage();
+    });
+
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            input.value = '';
+            clearMessage();
+        }
+    });
+
+    function addCityToList(cityName) {
+        const allKeys = Object.keys(cities);
+        if (user_cities.indexOf(cityName) >= 0) {
+            console.log(user_cities.indexOf(cityName));
+            return 'exists';
+        }
+        else if (allKeys.indexOf(cityName) >= 0) {
+            return 'added';
+        }
+        else {
+            return 'not found';
+        }
+    }
+
+    function addCityAside(cityName) {
+        const lst = document.querySelector('.sidebar-list');
+        const newCity = document.createElement('li');
+        newCity.textContent = cityName;
+        lst.appendChild(newCity);
+    }
+
+    function showMessage(type, text) {
+        let message = document.querySelector('.modal-message');
+        
+        if (!message) {
+            message = document.createElement('div');
+            message.className = 'modal-message';
+            modal.querySelector('.modal-content').appendChild(message);
+        }
+        
+        message.textContent = text;
+        message.className = `modal-message ${type}`;
+        message.style.display = 'block';
+    }
+
+    function clearMessage() {
+        const message = document.querySelector('.modal-message');
+        if (message) {
+            message.textContent = '';
+            message.style.display = 'none';
+            message.className = 'modal-message';
+        }
+    }
 }
 
 function addListeners() {
