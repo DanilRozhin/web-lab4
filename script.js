@@ -168,12 +168,32 @@ function addListeners() {
             }
         }
     });
+
+    document.querySelector('.refresh-btn').addEventListener('click', function(event) {
+        const city = document.querySelector('.sidebar-list .chosed');
+        const cityName = city.textContent;
+        if (cityName === 'Current location') {
+            if (loadedForecasts[cityName]) {
+                geoWeather('refresh');
+            }
+            else {
+                givePermissionMsg();
+                getPosition();
+            }
+        }
+        else {
+            loadWeatherForCity(cityName, 'refresh');
+        }
+    })
 }
 
 function givePermissionMsg() {
     const weatherContent = document.querySelector('.weather-content');
-    weatherContent.innerHTML = '';
-
+    const elementsToRemove = Array.from(weatherContent.children).filter(
+        child => !child.classList.contains('refresh-btn') && !child.classList.contains('empty-state')
+    );
+    elementsToRemove.forEach(el => el.remove());
+    
     const emptyState = document.querySelector('.empty-state');
     if (emptyState) {
         emptyState.style.display = 'none';
@@ -181,14 +201,15 @@ function givePermissionMsg() {
 
     const textArea = document.createElement('p');
     textArea.textContent = 'Please, give the permission to see current location forecast';
+    textArea.style.textAlign = 'center';
     weatherContent.appendChild(textArea);
 }
 
-function loadWeatherForCity(cityName) {
+function loadWeatherForCity(cityName, flag='no') {
     if (cities[cityName]) {
         const { lat, lon } = cities[cityName];
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-        getWeather(url, cityName);
+        getWeather(url, cityName, flag);
     }
 }
 
@@ -208,6 +229,7 @@ function getPosition() {
                 input.placeholder = 'Enter city...';
                 input.focus();
                 clearMessage();
+                isFirst = false;
             }
 
             switch (error.code) {
@@ -227,7 +249,7 @@ function getPosition() {
     );
 }
 
-function geoWeather() {
+function geoWeather(flag='no') {
     if (!position_pc) {
         console.error('Нет данных о местоположении');
         return;
@@ -246,26 +268,29 @@ function geoWeather() {
         }
     });
 
-    if (loadedForecasts['Current location']) {
+    if (loadedForecasts['Current location'] && flag === 'no') {
         console.log('Используем кэшированный прогноз для Current location');
         data_weather = loadedForecasts['Current location'];
         showWeather();
     }
     else {
-        getWeather(url, 'Current location');
+        getWeather(url, 'Current location', flag);
     }
 }
 
-function getWeather(url, cityName = 'Current location') {
+function getWeather(url, cityName = 'Current location', flag='no') {
     const weatherContent = document.querySelector('.weather-content');
-    weatherContent.innerHTML = '';
+    const elementsToRemove = Array.from(weatherContent.children).filter(
+        child => !child.classList.contains('refresh-btn') && !child.classList.contains('empty-state')
+    );
+    elementsToRemove.forEach(el => el.remove());
 
     const emptyState = document.querySelector('.empty-state');
     if (emptyState) {
         emptyState.style.display = 'none';
     }
 
-    if (loadedForecasts[cityName]) {
+    if (loadedForecasts[cityName] && flag === 'no') {
         console.log(`Используем сохраненный прогноз для ${cityName}`);
         data_weather = loadedForecasts[cityName];
         showWeather();
@@ -274,6 +299,7 @@ function getWeather(url, cityName = 'Current location') {
 
     const textArea = document.createElement('p');
     textArea.textContent = `${cityName}'s forecast will be here right now...`;
+    textArea.style.textAlign = 'center';
     weatherContent.appendChild(textArea);
 
     fetch(url)
@@ -302,8 +328,11 @@ function getWeather(url, cityName = 'Current location') {
 }
 
 function showWeather() {
-    const weatherContent = document.querySelector('.weather-content');
-    weatherContent.innerHTML = '';
+    const weatherContent = document.querySelector('.weather-content');    
+    const elementsToRemove = Array.from(weatherContent.children).filter(
+        child => !child.classList.contains('refresh-btn') && !child.classList.contains('empty-state')
+    );
+    elementsToRemove.forEach(el => el.remove());
 
     const emptyState = document.querySelector('.empty-state');
     if (emptyState) {
@@ -314,6 +343,7 @@ function showWeather() {
     textArea.textContent = `${data_weather.current_weather.temperature}
         ${data_weather.current_weather_units.temperature}, 
         ${data_weather.latitude}, ${data_weather.longitude}`;
+    textArea.style.textAlign = 'center';
     weatherContent.appendChild(textArea);
 }
 
