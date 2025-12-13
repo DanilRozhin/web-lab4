@@ -324,6 +324,7 @@ function getWeather(url, cityName = 'Current location', flag='no') {
         })
         .catch(error => {
             console.error('Ошибка получения данных: ', error);
+            showError(error.message);
         });
 }
 
@@ -397,6 +398,26 @@ function showSuggestions(searchText) {
 
 function hideSuggestions() {
     document.querySelector('.suggestions-list').style.display = 'none';
+}
+
+function showError(message) {
+    const weatherContent = document.querySelector('.weather-content');
+    
+    const elementsToRemove = Array.from(weatherContent.children).filter(
+        child => !child.classList.contains('refresh-btn')
+    );
+    elementsToRemove.forEach(el => el.remove());
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-div';
+    errorDiv.style.cssText = 'text-align: center; padding: 20px; color: #f88484ff;';
+    
+    const errorText = document.createElement('p');
+    errorText.textContent = `Error: ${message}`;
+    errorText.className = 'error-text';
+    
+    errorDiv.appendChild(errorText);
+    weatherContent.appendChild(errorDiv);
 }
 
 document.addEventListener('DOMContentLoaded', main);
