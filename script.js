@@ -19,11 +19,22 @@ const cities = {
     'Saint-Petersburg': { lat: 59.57, lon: 30.19 },
 }
 let user_cities = [];
+let currentSelectedCity = null;
 
 function main() {
+    loadFromLocalStorage();
     initModalListeners();
     addListeners();
-    getPosition();
+    
+    if (currentSelectedCity === 'Current location' && position_pc) {
+        setTimeout(() => geoWeather(), 100);
+    }
+    else if (currentSelectedCity && cities[currentSelectedCity]) {
+        setTimeout(() => loadWeatherForCity(currentSelectedCity), 100);
+    }
+    else if (!currentSelectedCity) {
+        getPosition();
+    }
 }
 
 function initModalListeners() {
@@ -65,6 +76,7 @@ function initModalListeners() {
             showMessage('success', `City ${cleanCity} added successfully!`);
             addCityAside(cleanCity);
             hideSuggestions();
+            saveToLocalStorage();
         }
         else if (isAdded === 'exists') {
             showMessage('exists', `City "${cleanCity}" is already in your list.`);
@@ -100,6 +112,8 @@ function addCityToList(cityName) {
         return 'exists';
     }
     else if (allKeys.indexOf(cityName) >= 0) {
+        currentSelectedCity = cityName;
+        saveToLocalStorage();
         return 'added';
     }
     else {
@@ -109,9 +123,26 @@ function addCityToList(cityName) {
 
 function addCityAside(cityName) {
     const lst = document.querySelector('.sidebar-list');
-    const newCity = document.createElement('li');
-    newCity.textContent = cityName;
-    lst.appendChild(newCity);
+    
+    const hasCurrentLocation = Array.from(lst.children).some(
+        li => li.textContent === 'Current location'
+    );
+    
+    if (!hasCurrentLocation) {
+        const currentLocationItem = document.createElement('li');
+        currentLocationItem.textContent = 'Current location';
+        lst.insertBefore(currentLocationItem, lst.firstChild);
+    }
+    
+    const cityExists = Array.from(lst.children).some(
+        li => li.textContent === cityName
+    );
+    
+    if (!cityExists) {
+        const newCity = document.createElement('li');
+        newCity.textContent = cityName;
+        lst.appendChild(newCity);
+    }
 }
 
 function showMessage(type, text) {
@@ -147,8 +178,11 @@ function addListeners() {
             
             event.target.classList.add('chosed');
             
+            currentSelectedCity = cityName;
+            saveToLocalStorage();
+            
             if (cityName === 'Current location') {
-                if (loadedForecasts[cityName]) {
+                if (position_pc) {
                     geoWeather();
                 }
                 else {
@@ -171,9 +205,11 @@ function addListeners() {
 
     document.querySelector('.refresh-btn').addEventListener('click', function(event) {
         const city = document.querySelector('.sidebar-list .chosed');
+        if (!city) return;
+        
         const cityName = city.textContent;
         if (cityName === 'Current location') {
-            if (loadedForecasts[cityName]) {
+            if (position_pc) {
                 geoWeather('refresh');
             }
             else {
@@ -184,7 +220,7 @@ function addListeners() {
         else {
             loadWeatherForCity(cityName, 'refresh');
         }
-    })
+    });
 }
 
 function givePermissionMsg() {
@@ -214,9 +250,16 @@ function loadWeatherForCity(cityName, flag='no') {
 }
 
 function getPosition() {
+    if (position_pc) {
+        console.log('Координаты уже есть, используем их');
+        geoWeather();
+        return;
+    }
+    
     navigator.geolocation.getCurrentPosition(
         (position) => {
             position_pc = position;
+            saveToLocalStorage();
             geoWeather();
         },
 
@@ -235,6 +278,7 @@ function getPosition() {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
                     console.error("Отказано в доступе к геолокации");
+                    saveToLocalStorage();
                     break;
                 case error.POSITION_UNAVAILABLE:
                     console.error("Информация о местоположении недоступна");
@@ -252,6 +296,7 @@ function getPosition() {
 function geoWeather(flag='no') {
     if (!position_pc) {
         console.error('Нет данных о местоположении');
+        givePermissionMsg();
         return;
     }
 
@@ -259,14 +304,16 @@ function geoWeather(flag='no') {
     const lon = position_pc.coords.longitude.toFixed(2);
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=3`;
     
-    const allItems = document.querySelectorAll('li');
-    allItems.forEach(li => {
-        li.classList.remove('chosed');
-        
-        if (li.textContent === 'Current location') {
-            li.classList.add('chosed');
-        }
-    });
+    if (!currentSelectedCity || flag === 'refresh') {
+        const allItems = document.querySelectorAll('li');
+        allItems.forEach(li => {
+            li.classList.remove('chosed');
+            
+            if (li.textContent === 'Current location') {
+                li.classList.add('chosed');
+            }
+        });
+    }
 
     if (loadedForecasts['Current location'] && flag === 'no') {
         console.log('Используем кэшированный прогноз для Current location');
@@ -276,6 +323,9 @@ function geoWeather(flag='no') {
     else {
         getWeather(url, 'Current location', flag);
     }
+    
+    currentSelectedCity = 'Current location';
+    saveToLocalStorage();
 }
 
 function getWeather(url, cityName = 'Current location', flag='no') {
@@ -329,6 +379,8 @@ function getWeather(url, cityName = 'Current location', flag='no') {
 }
 
 function showWeather() {
+    if (!data_weather) return;
+    
     const weatherContent = document.querySelector('.weather-content');    
     const elementsToRemove = Array.from(weatherContent.children).filter(
         child => !child.classList.contains('refresh-btn') && !child.classList.contains('empty-state')
@@ -367,7 +419,7 @@ function showWeather() {
     
     weatherContent.appendChild(cityHeader);
 
-    const celsium = data_weather.hourly_units.temperature_2m
+    const celsium = data_weather.hourly_units.temperature_2m;
 
     const days = [
         {
@@ -722,18 +774,72 @@ function showError() {
     );
     elementsToRemove.forEach(el => el.remove());
     
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-div';
-    errorDiv.style.cssText = 'text-align: center; padding: 20px; color: #f88484ff;';
-    
     const errorText = document.createElement('p');
     errorText.textContent = `Error: Failed to get weather in this place`;
     errorText.className = 'error-text';
     
-    errorDiv.appendChild(errorText);
-    weatherContent.appendChild(errorDiv);
+    weatherContent.appendChild(errorText);
+}
+
+function saveToLocalStorage() {
+    try {
+        const dataToSave = {
+            user_cities: user_cities,
+            currentSelectedCity: currentSelectedCity,
+            latitude: position_pc ? position_pc.coords.latitude : null,
+            longitude: position_pc ? position_pc.coords.longitude : null,
+        };
+        localStorage.setItem('weatherAppData', JSON.stringify(dataToSave));
+    }
+    catch (e) {
+        console.error('Ошибка сохранения в localStorage:', e);
+    }
+}
+
+function loadFromLocalStorage() {
+    try {
+        const savedData = localStorage.getItem('weatherAppData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+
+            if (data.user_cities && Array.isArray(data.user_cities)) {
+                user_cities = data.user_cities;
+                data.user_cities.forEach(city => addCityAside(city));
+            }
+            
+            if (data.currentSelectedCity) {
+                currentSelectedCity = data.currentSelectedCity;
+            }
+            
+            if (data.latitude && data.longitude) {
+                position_pc = {
+                    coords: {
+                        latitude: data.latitude,
+                        longitude: data.longitude
+                    }
+                };
+            }
+            
+            console.log('Данные загружены из localStorage');
+
+            setTimeout(() => {
+                if (currentSelectedCity) {
+                    const allItems = document.querySelectorAll('.sidebar-list li');
+                    allItems.forEach(li => {
+                        if (li.textContent === currentSelectedCity) {
+                            li.classList.add('chosed');
+                        }
+                    });
+                }
+            }, 100);
+        }
+        else {
+            console.log('Нет сохраненных данных в localStorage');
+        }
+    }
+    catch (e) {
+        console.error('Ошибка загрузки из localStorage:', e);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', main);
-
-// localStorage (only cities, modal, without weather), media, drawing (3 days)

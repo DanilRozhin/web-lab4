@@ -185,14 +185,11 @@ header {
     box-sizing: border-box;
 }
 
-.error-div {
+.error-text {
+    margin: 10px 0;
     text-align: center;
     padding: 20px;
     color: #f88484ff;
-}
-
-.error-text {
-    margin: 10px 0;
 }
 
 .city-modal input {
