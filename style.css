@@ -270,6 +270,125 @@ header {
     color: #235;
 }
 
+.weather-city-name {
+    font-size: 28px;
+    font-weight: bold;
+    color: #235;
+    margin: 0;
+    text-align: center;
+    margin: 20px 0 30px 0;
+}
+
+.weather-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 0 20px 20px 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.weather-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    background-color: white;
+}
+
+.weather-card-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.weather-card-date {
+    color: #235;
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.weather-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.weather-hourly {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.weather-time-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    height: 35px;
+}
+
+.weather-time-section:last-child {
+    border-bottom: none;
+}
+
+.weather-time-label {
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.weather-time-icon {
+    font-size: 20px;
+    min-width: 30px;
+    text-align: center;
+    cursor: help;
+}
+
+.weather-time-temp {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.weather-sun-info {
+    padding: 0 9px 14px 9px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.weather-sun-times {
+    margin: 0 0;
+}
+
+.weather-sun-time {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.weather-sun-label {
+    font-weight: bold;
+}
+
+.weather-sun-value {
+    font-size: 15px;
+}
+
+.weather-daylight {
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-weight: bold;
+}
+
 @media (max-width: 600px) {
     .main-container {
         flex-direction: column;

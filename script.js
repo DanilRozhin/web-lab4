@@ -345,25 +345,254 @@ function showWeather() {
     const tomorrowDegrees = hourlyForecast.slice(24, 48);
     const afterTomorrowDegrees = hourlyForecast.slice(48, 72);
 
-    [todayMorningWeather, todayAfternoonWeather, todayEveningWeather] = threePartsDegrees(todayDegrees);
-    [tomorrowMorningWeather, tomorrowAfternoonWeather, tomorrowEveningWeather] = threePartsDegrees(tomorrowDegrees);
-    [afterTomorrowMorningWeather, afterTomorrowAfternoonWeather, afterTomorrowEveningWeather] = threePartsDegrees(afterTomorrowDegrees);
-
     const hourlyCodes = data_weather.hourly.weathercode;
     const todayCodes = hourlyCodes.slice(0, 24);
     const tomorrowCodes = hourlyCodes.slice(24, 48);
     const afterTomorrowCodes = hourlyCodes.slice(48, 72);
 
-    [todayMorningCode, todayAfternoonCode, todayEveningCode] = mostFrequent(todayCodes);
-    [tomorrowMorningCode, tomorrowAfternoonCode, tomorrowEveningCode] = mostFrequent(tomorrowCodes);
-    [afterTomorrowMorningCode, afterTomorrowAfternoonCode, afterTomorrowEveningCode] = mostFrequent(afterTomorrowCodes);
+    const [todayMorningWeather, todayAfternoonWeather, todayEveningWeather] = threePartsDegrees(todayDegrees);
+    const [tomorrowMorningWeather, tomorrowAfternoonWeather, tomorrowEveningWeather] = threePartsDegrees(tomorrowDegrees);
+    const [afterTomorrowMorningWeather, afterTomorrowAfternoonWeather, afterTomorrowEveningWeather] = threePartsDegrees(afterTomorrowDegrees);
 
-    const textArea = document.createElement('p');
-    textArea.textContent = `${todayMorningWeather},
-        ${todayMorningCode}, 
-        ${tomorrowMorningWeather}, ${tomorrowMorningCode}`;
-    textArea.style.textAlign = 'center';
-    weatherContent.appendChild(textArea);
+    const [todayMorningCode, todayAfternoonCode, todayEveningCode] = mostFrequent(todayCodes);
+    const [tomorrowMorningCode, tomorrowAfternoonCode, tomorrowEveningCode] = mostFrequent(tomorrowCodes);
+    const [afterTomorrowMorningCode, afterTomorrowAfternoonCode, afterTomorrowEveningCode] = mostFrequent(afterTomorrowCodes);
+
+    const sunriseTimes = data_weather.daily.sunrise;
+    const sunsetTimes = data_weather.daily.sunset;
+    
+    const cityHeader = document.createElement('h1');
+    cityHeader.className = 'weather-city-name';
+    cityHeader.textContent = data_weather.cityName;
+    
+    weatherContent.appendChild(cityHeader);
+
+    const celsium = data_weather.hourly_units.temperature_2m
+
+    const days = [
+        {
+            date: 'Today',
+            morningTemp: todayMorningWeather,
+            afternoonTemp: todayAfternoonWeather,
+            eveningTemp: todayEveningWeather,
+            morningCode: todayMorningCode,
+            afternoonCode: todayAfternoonCode,
+            eveningCode: todayEveningCode,
+            sunrise: sunriseTimes[0],
+            sunset: sunsetTimes[0],
+            celsium,
+        },
+        {
+            date: 'Tomorrow',
+            morningTemp: tomorrowMorningWeather,
+            afternoonTemp: tomorrowAfternoonWeather,
+            eveningTemp: tomorrowEveningWeather,
+            morningCode: tomorrowMorningCode,
+            afternoonCode: tomorrowAfternoonCode,
+            eveningCode: tomorrowEveningCode,
+            sunrise: sunriseTimes[1],
+            sunset: sunsetTimes[1],
+            celsium,
+        },
+        {
+            date: 'Day after tomorrow',
+            morningTemp: afterTomorrowMorningWeather,
+            afternoonTemp: afterTomorrowAfternoonWeather,
+            eveningTemp: afterTomorrowEveningWeather,
+            morningCode: afterTomorrowMorningCode,
+            afternoonCode: afterTomorrowAfternoonCode,
+            eveningCode: afterTomorrowEveningCode,
+            sunrise: sunriseTimes[2],
+            sunset: sunsetTimes[2],
+            celsium,
+        }
+    ];
+
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'weather-cards';
+
+    days.forEach(dayData => {
+        const dayCard = document.createElement('article');
+        dayCard.className = 'weather-card';
+
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'weather-card-header';
+
+        const cardDate = document.createElement('h2');
+        cardDate.className = 'weather-card-date';
+        cardDate.textContent = dayData.date;
+
+        cardHeader.appendChild(cardDate);
+
+        const infoContainer = document.createElement('div');
+        infoContainer.className = 'weather-card-content';
+
+        const hourlyInfo = document.createElement('div');
+        hourlyInfo.className = 'weather-hourly';
+
+        const morningSection = document.createElement('div');
+        morningSection.className = 'weather-time-section';
+
+        const morningLabel = document.createElement('p');
+        morningLabel.className = 'weather-time-label';
+        morningLabel.textContent = 'Morning';
+
+        const morningIcon = document.createElement('p');
+        morningIcon.className = 'weather-time-icon';
+        morningIcon.textContent = getWeatherIcon(dayData.morningCode);
+        morningIcon.title = getWeatherDescription(dayData.morningCode);
+
+        const morningTemp = document.createElement('p');
+        morningTemp.className = 'weather-time-temp';
+        morningTemp.textContent = `${dayData.morningTemp}${dayData.celsium}`;
+
+        morningSection.appendChild(morningLabel);
+        morningSection.appendChild(morningIcon);
+        morningSection.appendChild(morningTemp);
+
+        const afternoonSection = document.createElement('div');
+        afternoonSection.className = 'weather-time-section';
+
+        const afternoonLabel = document.createElement('p');
+        afternoonLabel.className = 'weather-time-label';
+        afternoonLabel.textContent = 'Afternoon';
+
+        const afternoonIcon = document.createElement('p');
+        afternoonIcon.className = 'weather-time-icon';
+        afternoonIcon.textContent = getWeatherIcon(dayData.afternoonCode);
+        afternoonIcon.title = getWeatherDescription(dayData.afternoonCode);
+
+        const afternoonTemp = document.createElement('p');
+        afternoonTemp.className = 'weather-time-temp';
+        afternoonTemp.textContent = `${dayData.afternoonTemp}${dayData.celsium}`;
+
+        afternoonSection.appendChild(afternoonLabel);
+        afternoonSection.appendChild(afternoonIcon);
+        afternoonSection.appendChild(afternoonTemp);
+
+        const eveningSection = document.createElement('div');
+        eveningSection.className = 'weather-time-section';
+
+        const eveningLabel = document.createElement('p');
+        eveningLabel.className = 'weather-time-label';
+        eveningLabel.textContent = 'Evening';
+
+        const eveningIcon = document.createElement('p');
+        eveningIcon.className = 'weather-time-icon';
+        eveningIcon.textContent = getWeatherIcon(dayData.eveningCode);
+        eveningIcon.title = getWeatherDescription(dayData.eveningCode);
+
+        const eveningTemp = document.createElement('p');
+        eveningTemp.className = 'weather-time-temp';
+        eveningTemp.textContent = `${dayData.eveningTemp}${dayData.celsium}`;
+
+        eveningSection.appendChild(eveningLabel);
+        eveningSection.appendChild(eveningIcon);
+        eveningSection.appendChild(eveningTemp);
+
+        hourlyInfo.appendChild(morningSection);
+        hourlyInfo.appendChild(afternoonSection);
+        hourlyInfo.appendChild(eveningSection);
+
+        const sunInfo = document.createElement('div');
+        sunInfo.className = 'weather-sun-info';
+
+        const sunTimes = document.createElement('div');
+        sunTimes.className = 'weather-sun-times';
+
+        const sunriseDiv = document.createElement('div');
+        sunriseDiv.className = 'weather-sun-time';
+
+        const sunriseLabel = document.createElement('p');
+        sunriseLabel.className = 'weather-sun-label';
+        sunriseLabel.textContent = 'Sunrise';
+
+        const sunriseValue = document.createElement('p');
+        sunriseValue.className = 'weather-sun-value';
+        sunriseValue.textContent = getTimeFromDateString(dayData.sunrise);
+
+        sunriseDiv.appendChild(sunriseLabel);
+        sunriseDiv.appendChild(sunriseValue);
+
+        const sunsetDiv = document.createElement('div');
+        sunsetDiv.className = 'weather-sun-time';
+
+        const sunsetLabel = document.createElement('p');
+        sunsetLabel.className = 'weather-sun-label';
+        sunsetLabel.textContent = 'Sunset';
+
+        const sunsetValue = document.createElement('p');
+        sunsetValue.className = 'weather-sun-value';
+        sunsetValue.textContent = getTimeFromDateString(dayData.sunset);
+
+        sunsetDiv.appendChild(sunsetLabel);
+        sunsetDiv.appendChild(sunsetValue);
+
+        sunTimes.appendChild(sunriseDiv);
+        sunTimes.appendChild(sunsetDiv);
+
+        const daylightDiv = document.createElement('div');
+        daylightDiv.className = 'weather-daylight';
+        daylightDiv.textContent = `Daylight: ${calculateDaylight(dayData.sunrise, dayData.sunset)}`;
+
+        sunInfo.appendChild(sunTimes);
+        sunInfo.appendChild(daylightDiv);
+
+        infoContainer.appendChild(hourlyInfo);
+        infoContainer.appendChild(sunInfo);
+
+        dayCard.appendChild(cardHeader);
+        dayCard.appendChild(infoContainer);
+
+        cardsContainer.appendChild(dayCard);
+    });
+
+    weatherContent.appendChild(cardsContainer);
+}
+
+function getTimeFromDateString(dateString) {
+    return dateString.slice(-5);
+}
+
+// 0	Clear sky
+// 1, 2, 3	Mainly clear, partly cloudy, and overcast
+// 45, 48	Fog and depositing rime fog
+// 51, 53, 55	Drizzle: Light, moderate, and dense intensity
+// 56, 57	Freezing Drizzle: Light and dense intensity
+// 61, 63, 65	Rain: Slight, moderate and heavy intensity
+// 66, 67	Freezing Rain: Light and heavy intensity
+// 71, 73, 75	Snow fall: Slight, moderate, and heavy intensity
+// 77	Snow grains
+// 80, 81, 82	Rain showers: Slight, moderate, and violent
+// 85, 86	Snow showers slight and heavy
+// 95 *	Thunderstorm: Slight or moderate
+// 96, 99 *	Thunderstorm with slight and heavy hail
+
+function getWeatherIcon(code) {
+    if (code === 0) return '☀️';
+    if (code >= 1 && code <= 3) return '⛅';
+    if (code >= 45 && code <= 48) return '🌫️';
+    if (code >= 51 && code <= 67) return '🌧️';
+    if (code >= 71 && code <= 77) return '❄️';
+    if (code >= 80 && code <= 99) return '⛈️';
+}
+
+function getWeatherDescription(code) {
+    if (code === 0) return 'Clear sky';
+    if (code >= 1 && code <= 3) return 'Partly cloudy';
+    if (code >= 45 && code <= 48) return 'Foggy';
+    if (code >= 51 && code <= 67) return 'Rainy';
+    if (code >= 71 && code <= 77) return 'Snowy';
+    if (code >= 80 && code <= 99) return 'Stormy';
+};
+
+function calculateDaylight(sunrise, sunset) {
+    const sunriseTime = new Date(sunrise);
+    const sunsetTime = new Date(sunset);
+    const dayLengthMs = sunsetTime - sunriseTime;
+    const dayLengthHours = Math.floor(dayLengthMs / (1000 * 60 * 60));
+    const dayLengthMinutes = Math.floor((dayLengthMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${dayLengthHours}h ${dayLengthMinutes}min`;
 }
 
 function threePartsDegrees(degrees) {
@@ -506,3 +735,5 @@ function showError() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+
+// localStorage (only cities, modal, without weather), media, drawing (3 days)
