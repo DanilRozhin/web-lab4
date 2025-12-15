@@ -208,7 +208,7 @@ function givePermissionMsg() {
 function loadWeatherForCity(cityName, flag='no') {
     if (cities[cityName]) {
         const { lat, lon } = cities[cityName];
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=3`;
         getWeather(url, cityName, flag);
     }
 }
@@ -257,7 +257,7 @@ function geoWeather(flag='no') {
 
     const lat = position_pc.coords.latitude.toFixed(2);
     const lon = position_pc.coords.longitude.toFixed(2);
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=3`;
     
     const allItems = document.querySelectorAll('li');
     allItems.forEach(li => {
@@ -324,7 +324,7 @@ function getWeather(url, cityName = 'Current location', flag='no') {
         })
         .catch(error => {
             console.error('Ошибка получения данных: ', error);
-            showError(error.message);
+            showError();
         });
 }
 
@@ -340,12 +340,97 @@ function showWeather() {
         emptyState.style.display = 'none';
     }
 
+    const hourlyForecast = data_weather.hourly.temperature_2m;
+    const todayDegrees = hourlyForecast.slice(0, 24);
+    const tomorrowDegrees = hourlyForecast.slice(24, 48);
+    const afterTomorrowDegrees = hourlyForecast.slice(48, 72);
+
+    [todayMorningWeather, todayAfternoonWeather, todayEveningWeather] = threePartsDegrees(todayDegrees);
+    [tomorrowMorningWeather, tomorrowAfternoonWeather, tomorrowEveningWeather] = threePartsDegrees(tomorrowDegrees);
+    [afterTomorrowMorningWeather, afterTomorrowAfternoonWeather, afterTomorrowEveningWeather] = threePartsDegrees(afterTomorrowDegrees);
+
+    const hourlyCodes = data_weather.hourly.weathercode;
+    const todayCodes = hourlyCodes.slice(0, 24);
+    const tomorrowCodes = hourlyCodes.slice(24, 48);
+    const afterTomorrowCodes = hourlyCodes.slice(48, 72);
+
+    [todayMorningCode, todayAfternoonCode, todayEveningCode] = mostFrequent(todayCodes);
+    [tomorrowMorningCode, tomorrowAfternoonCode, tomorrowEveningCode] = mostFrequent(tomorrowCodes);
+    [afterTomorrowMorningCode, afterTomorrowAfternoonCode, afterTomorrowEveningCode] = mostFrequent(afterTomorrowCodes);
+
     const textArea = document.createElement('p');
-    textArea.textContent = `${data_weather.current_weather.temperature}
-        ${data_weather.current_weather_units.temperature}, 
-        ${data_weather.latitude}, ${data_weather.longitude}`;
+    textArea.textContent = `${todayMorningWeather},
+        ${todayMorningCode}, 
+        ${tomorrowMorningWeather}, ${tomorrowMorningCode}`;
     textArea.style.textAlign = 'center';
     weatherContent.appendChild(textArea);
+}
+
+function threePartsDegrees(degrees) {
+    const morning = degrees.slice(0, 8);
+    const afternoon = degrees.slice(8, 16);
+    const evening = degrees.slice(16, 24);
+
+    let morningMean = 0;
+    morning.forEach(num => { morningMean += num });
+    morningMean = Math.round(morningMean / 8);
+
+    let afternoonMean = 0;
+    afternoon.forEach(num => { afternoonMean += num });
+    afternoonMean = Math.round(afternoonMean / 8);
+
+    let eveningMean = 0;
+    evening.forEach(num => { eveningMean += num });
+    eveningMean = Math.round(eveningMean / 8);
+
+    return [morningMean, afternoonMean, eveningMean];
+}
+
+function mostFrequent(arr) {
+    const morning = arr.slice(0, 8);
+    const afternoon = arr.slice(8, 16);
+    const evening = arr.slice(16, 24);
+
+    let m1 = {};
+    let maxCount1 = 0;
+    let morningCode = null;
+
+    for (let x of morning) {
+        m1[x] = (m1[x] || 0) + 1;
+
+        if (m1[x] > maxCount1) {
+            maxCount1 = m1[x];
+            morningCode = x;
+        }
+    }
+
+    let m2 = {};
+    let maxCount2 = 0;
+    let afternoonCode = null;
+
+    for (let x of afternoon) {
+        m2[x] = (m2[x] || 0) + 1;
+
+        if (m2[x] > maxCount2) {
+            maxCount2 = m2[x];
+            afternoonCode = x;
+        }
+    }
+
+    let m3 = {};
+    let maxCount3 = 0;
+    let eveningCode = null;
+
+    for (let x of evening) {
+        m3[x] = (m3[x] || 0) + 1;
+
+        if (m3[x] > maxCount3) {
+            maxCount3 = m3[x];
+            eveningCode = x;
+        }
+    }
+
+    return [morningCode, afternoonCode, eveningCode];
 }
 
 function showSuggestions(searchText) {
@@ -400,7 +485,7 @@ function hideSuggestions() {
     document.querySelector('.suggestions-list').style.display = 'none';
 }
 
-function showError(message) {
+function showError() {
     const weatherContent = document.querySelector('.weather-content');
     
     const elementsToRemove = Array.from(weatherContent.children).filter(
@@ -413,7 +498,7 @@ function showError(message) {
     errorDiv.style.cssText = 'text-align: center; padding: 20px; color: #f88484ff;';
     
     const errorText = document.createElement('p');
-    errorText.textContent = `Error: ${message}`;
+    errorText.textContent = `Error: Failed to get weather in this place`;
     errorText.className = 'error-text';
     
     errorDiv.appendChild(errorText);
