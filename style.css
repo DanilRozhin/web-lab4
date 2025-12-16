@@ -575,6 +575,10 @@ header {
 }
 
 @media (max-width: 380px) {
+    header {
+        background: #235daf;
+    }
+
     .weather-card {
         max-width: 85%;
     }
