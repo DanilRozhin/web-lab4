@@ -20,19 +20,29 @@ const cities = {
 }
 let user_cities = [];
 let currentSelectedCity = null;
+let isAskedGeo = false;
 
 function main() {
+    // localStorage.removeItem('weatherAppData');
     loadFromLocalStorage();
     initModalListeners();
     addListeners();
     
-    if (currentSelectedCity === 'Current location' && position_pc) {
+    if (currentSelectedCity === 'Current location' && !position_pc && isAskedGeo) {
+        console.log('Показываем сообщение о необходимости разрешения');
+        setTimeout(() => givePermissionMsg(), 100);
+    }
+    else if (currentSelectedCity === 'Current location' && position_pc) {
+        console.log('1');
         setTimeout(() => geoWeather(), 100);
     }
     else if (currentSelectedCity && cities[currentSelectedCity]) {
+        console.log('2');
         setTimeout(() => loadWeatherForCity(currentSelectedCity), 100);
     }
-    else if (!currentSelectedCity) {
+    else if (!currentSelectedCity && !isAskedGeo) {
+        console.log('3');
+        console.log(isAskedGeo);
         getPosition();
     }
 }
@@ -240,7 +250,6 @@ function addListeners() {
             }
             else {
                 givePermissionMsg();
-                getPosition();
             }
         }
         else {
@@ -265,8 +274,10 @@ function addListeners() {
             if (position_pc) {
                 geoWeather('refresh');
             }
-            else {
+            else if (isAskedGeo) {
                 givePermissionMsg();
+            }
+            else {
                 getPosition();
             }
         }
@@ -308,16 +319,23 @@ function getPosition() {
         geoWeather();
         return;
     }
+
+    if (isAskedGeo) {
+        console.log('Геолокация уже запрашивалась');
+        return;
+    }
     
     navigator.geolocation.getCurrentPosition(
         (position) => {
             position_pc = position;
+            isAskedGeo = true;
             saveToLocalStorage();
             geoWeather();
         },
 
         (error) => {
             console.error("Ошибка получения местоположения:", error.message);
+            isAskedGeo = true;
             if (isFirst) {
                 const modal = document.querySelector('.city-modal');
                 const input = document.querySelector('.input-city');
@@ -856,8 +874,11 @@ function saveToLocalStorage() {
             longitude: position_pc ? position_pc.coords.longitude : null,
             modalOpen: modal.style.display === 'flex',
             inputValue: input ? input.value : '',
+            isAskedGeo: isAskedGeo,
+            isFirst: isFirst,
         };
         localStorage.setItem('weatherAppData', JSON.stringify(dataToSave));
+        console.log(dataToSave);
     }
     catch (e) {
         console.error('Ошибка сохранения в localStorage:', e);
@@ -886,6 +907,13 @@ function loadFromLocalStorage() {
                         longitude: data.longitude
                     }
                 };
+            }
+
+            if (data.isAskedGeo !== undefined) {
+                isAskedGeo = data.isAskedGeo;
+            }
+            else if (data.isFirst !== undefined) {
+                isAskedGeo = !data.isFirst;
             }
             
             console.log('Данные загружены из localStorage');
