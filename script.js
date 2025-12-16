@@ -29,20 +29,15 @@ function main() {
     addListeners();
     
     if (currentSelectedCity === 'Current location' && !position_pc && isAskedGeo) {
-        console.log('Показываем сообщение о необходимости разрешения');
         setTimeout(() => givePermissionMsg(), 100);
     }
     else if (currentSelectedCity === 'Current location' && position_pc) {
-        console.log('1');
         setTimeout(() => geoWeather(), 100);
     }
     else if (currentSelectedCity && cities[currentSelectedCity]) {
-        console.log('2');
         setTimeout(() => loadWeatherForCity(currentSelectedCity), 100);
     }
     else if (!currentSelectedCity && !isAskedGeo) {
-        console.log('3');
-        console.log(isAskedGeo);
         getPosition();
     }
 }
@@ -83,7 +78,6 @@ function initModalListeners() {
         const isAdded = addCityToList(cleanCity);
         if (isAdded === 'added') {
             user_cities.push(cleanCity);
-            console.log(`Added ${cleanCity}`);
             input.value = '';
             showMessage('success', `City ${cleanCity} added successfully!`);
             addCityAside(cleanCity);
@@ -92,11 +86,9 @@ function initModalListeners() {
         }
         else if (isAdded === 'exists') {
             showMessage('exists', `City "${cleanCity}" is already in your list.`);
-            console.log(`${cleanCity} already exists`);
         }
         else if (isAdded === 'not found') {
             showMessage('error', `City "${cleanCity}" not found.`);
-            console.log(`${cleanCity} did not found`);
         }
     });
 
@@ -124,7 +116,6 @@ function addCityToList(cityName) {
     const cleanCityName = cityName.trim();
     
     if (user_cities.indexOf(cleanCityName) >= 0) {
-        console.log(user_cities.indexOf(cleanCityName));
         return 'exists';
     }
     else if (allKeys.indexOf(cleanCityName) >= 0) {
@@ -218,7 +209,6 @@ function addListeners() {
             
             saveToLocalStorage();
             
-            console.log(`Removed ${cityName}`);
             return;
         }
         
@@ -254,7 +244,6 @@ function addListeners() {
         }
         else {
             if (loadedForecasts[cityName]) {
-                console.log(`Используем кэшированный прогноз для ${cityName}`);
                 data_weather = loadedForecasts[cityName];
                 showWeather();
             }
@@ -315,13 +304,11 @@ function loadWeatherForCity(cityName, flag='no') {
 
 function getPosition() {
     if (position_pc) {
-        console.log('Координаты уже есть, используем их');
         geoWeather();
         return;
     }
 
     if (isAskedGeo) {
-        console.log('Геолокация уже запрашивалась');
         return;
     }
     
@@ -334,7 +321,6 @@ function getPosition() {
         },
 
         (error) => {
-            console.error("Ошибка получения местоположения:", error.message);
             isAskedGeo = true;
             if (isFirst) {
                 const modal = document.querySelector('.city-modal');
@@ -367,7 +353,6 @@ function getPosition() {
 
 function geoWeather(flag='no') {
     if (!position_pc) {
-        console.error('Нет данных о местоположении');
         givePermissionMsg();
         return;
     }
@@ -396,7 +381,6 @@ function geoWeather(flag='no') {
     }
 
     if (loadedForecasts['Current location'] && flag === 'no') {
-        console.log('Используем кэшированный прогноз для Current location');
         data_weather = loadedForecasts['Current location'];
         showWeather();
     }
@@ -421,7 +405,6 @@ function getWeather(url, cityName = 'Current location', flag='no') {
     }
 
     if (loadedForecasts[cityName] && flag === 'no') {
-        console.log(`Используем сохраненный прогноз для ${cityName}`);
         data_weather = loadedForecasts[cityName];
         showWeather();
         return;
@@ -440,7 +423,6 @@ function getWeather(url, cityName = 'Current location', flag='no') {
             return response.json();
         })
         .then(data => {
-            console.log(`Данные для ${cityName}:`, data);
             
             data_weather = {
                 ...data,
@@ -448,12 +430,10 @@ function getWeather(url, cityName = 'Current location', flag='no') {
             };
 
             loadedForecasts[cityName] = data_weather;
-            console.log(`Сохранен прогноз для ${cityName} в loadedForecasts`);
             
             showWeather();
         })
         .catch(error => {
-            console.error('Ошибка получения данных: ', error);
             showError();
         });
 }
@@ -878,7 +858,6 @@ function saveToLocalStorage() {
             isFirst: isFirst,
         };
         localStorage.setItem('weatherAppData', JSON.stringify(dataToSave));
-        console.log(dataToSave);
     }
     catch (e) {
         console.error('Ошибка сохранения в localStorage:', e);
@@ -916,8 +895,6 @@ function loadFromLocalStorage() {
                 isAskedGeo = !data.isFirst;
             }
             
-            console.log('Данные загружены из localStorage');
-
             setTimeout(() => {
                 if (currentSelectedCity) {
                     const allItems = document.querySelectorAll('.sidebar-list li');
