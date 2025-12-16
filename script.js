@@ -47,6 +47,7 @@ function initModalListeners() {
         input.focus();
         clearMessage();
         hideSuggestions();
+        saveToLocalStorage();
     });
 
     input.addEventListener('input', function() {
@@ -93,6 +94,7 @@ function initModalListeners() {
         input.value = '';
         clearMessage();
         hideSuggestions();
+        saveToLocalStorage();
     });
 
     modal.addEventListener('click', function(event) {
@@ -101,18 +103,20 @@ function initModalListeners() {
             input.value = '';
             clearMessage();
             hideSuggestions();
+            saveToLocalStorage();
         }
     });
 }
 
 function addCityToList(cityName) {
     const allKeys = Object.keys(cities);
-    if (user_cities.indexOf(cityName) >= 0) {
-        console.log(user_cities.indexOf(cityName));
+    const cleanCityName = cityName.trim();
+    
+    if (user_cities.indexOf(cleanCityName) >= 0) {
+        console.log(user_cities.indexOf(cleanCityName));
         return 'exists';
     }
-    else if (allKeys.indexOf(cityName) >= 0) {
-        currentSelectedCity = cityName;
+    else if (allKeys.indexOf(cleanCityName) >= 0) {
         saveToLocalStorage();
         return 'added';
     }
@@ -140,7 +144,16 @@ function addCityAside(cityName) {
     
     if (!cityExists) {
         const newCity = document.createElement('li');
-        newCity.textContent = cityName;
+        const cityContainer = document.createElement('div');
+        cityContainer.className = 'city-container';
+        const cityLabel = document.createElement('p');
+        cityLabel.textContent = cityName;
+        const cityDel = document.createElement('button');
+        cityDel.className = 'city-del-btn';
+        cityDel.textContent = 'x';
+        cityContainer.appendChild(cityLabel);
+        cityContainer.appendChild(cityDel);
+        newCity.appendChild(cityContainer);
         lst.appendChild(newCity);
     }
 }
@@ -170,35 +183,73 @@ function clearMessage() {
 
 function addListeners() {
     document.querySelector('.sidebar-list').addEventListener('click', function(event) {
-        if (event.target.tagName === 'LI') {
-            const cityName = event.target.textContent;
+        const li = event.target.closest('li');
+        if (!li) return;
+        
+        if (event.target.classList.contains('city-del-btn') || event.target.closest('.city-del-btn')) {
+            const cityLabel = li.querySelector('p');
+            const cityName = cityLabel ? cityLabel.textContent : li.textContent;
             
-            const allItems = this.querySelectorAll('li');
-            allItems.forEach(li => li.classList.remove('chosed'));
+            if (li.classList.contains('chosed')) {
+                return;
+            }
             
-            event.target.classList.add('chosed');
+            if (cityName === 'Current location') return;
             
-            currentSelectedCity = cityName;
+            const cityIndex = user_cities.indexOf(cityName);
+            if (cityIndex !== -1) {
+                user_cities.splice(cityIndex, 1);
+            }
+            
+            li.remove();
+            
+            delete loadedForecasts[cityName];
+            
             saveToLocalStorage();
             
-            if (cityName === 'Current location') {
-                if (position_pc) {
-                    geoWeather();
-                }
-                else {
-                    givePermissionMsg();
-                    getPosition();
-                }
+            console.log(`Removed ${cityName}`);
+            return;
+        }
+        
+        const cityLabel = li.querySelector('p');
+        const cityName = cityLabel ? cityLabel.textContent : li.textContent;
+        
+        const allItems = this.querySelectorAll('li');
+        allItems.forEach(item => {
+            item.classList.remove('chosed');
+            const delBtn = item.querySelector('.city-del-btn');
+            if (delBtn) {
+                delBtn.style.display = 'inline-flex';
+            }
+        });
+        
+        li.classList.add('chosed');
+
+        const btn = li.querySelector('.city-del-btn');
+        if (btn) {
+            btn.style.display = 'none';
+        }
+        
+        currentSelectedCity = cityName;
+        saveToLocalStorage();
+        
+        if (cityName === 'Current location') {
+            if (position_pc) {
+                geoWeather();
             }
             else {
-                if (loadedForecasts[cityName]) {
-                    console.log(`Используем кэшированный прогноз для ${cityName}`);
-                    data_weather = loadedForecasts[cityName];
-                    showWeather();
-                }
-                else {
-                    loadWeatherForCity(cityName);
-                }
+                givePermissionMsg();
+                getPosition();
+            }
+        }
+        else {
+            if (loadedForecasts[cityName]) {
+                console.log(`Используем кэшированный прогноз для ${cityName}`);
+                data_weather = loadedForecasts[cityName];
+                showWeather();
+            }
+            else {
+                loadWeatherForCity(cityName);
             }
         }
     });
@@ -207,7 +258,8 @@ function addListeners() {
         const city = document.querySelector('.sidebar-list .chosed');
         if (!city) return;
         
-        const cityName = city.textContent;
+        const cityLabel = city.querySelector('p');
+        const cityName = cityLabel ? cityLabel.textContent : city.textContent;
         if (cityName === 'Current location') {
             if (position_pc) {
                 geoWeather('refresh');
@@ -273,6 +325,7 @@ function getPosition() {
                 input.focus();
                 clearMessage();
                 isFirst = false;
+                saveToLocalStorage();
             }
 
             switch (error.code) {
@@ -309,7 +362,15 @@ function geoWeather(flag='no') {
         allItems.forEach(li => {
             li.classList.remove('chosed');
             
-            if (li.textContent === 'Current location') {
+            const delBtn = li.querySelector('.city-del-btn');
+            if (delBtn) {
+                delBtn.style.display = 'inline-flex';
+            }
+            
+            const cityLabel = li.querySelector('p');
+            const cityName = cityLabel ? cityLabel.textContent : li.textContent;
+            
+            if (cityName === 'Current location') {
                 li.classList.add('chosed');
             }
         });
@@ -783,11 +844,16 @@ function showError() {
 
 function saveToLocalStorage() {
     try {
+        const modal = document.querySelector('.city-modal');
+        const input = document.querySelector('.input-city');
+        
         const dataToSave = {
             user_cities: user_cities,
             currentSelectedCity: currentSelectedCity,
             latitude: position_pc ? position_pc.coords.latitude : null,
             longitude: position_pc ? position_pc.coords.longitude : null,
+            modalOpen: modal.style.display === 'flex',
+            inputValue: input ? input.value : '',
         };
         localStorage.setItem('weatherAppData', JSON.stringify(dataToSave));
     }
@@ -826,10 +892,37 @@ function loadFromLocalStorage() {
                 if (currentSelectedCity) {
                     const allItems = document.querySelectorAll('.sidebar-list li');
                     allItems.forEach(li => {
-                        if (li.textContent === currentSelectedCity) {
+                        const cityLabel = li.querySelector('p');
+                        const cityName = cityLabel ? cityLabel.textContent : li.textContent;
+                        
+                        if (cityName === currentSelectedCity) {
                             li.classList.add('chosed');
+                            const delBtn = li.querySelector('.city-del-btn');
+                            if (delBtn) {
+                                delBtn.style.display = 'none';
+                            }
+                        }
+                        else {
+                            const delBtn = li.querySelector('.city-del-btn');
+                            if (delBtn) {
+                                delBtn.style.display = 'inline-flex';
+                            }
                         }
                     });
+                }
+                
+                if (data.modalOpen) {
+                    const modal = document.querySelector('.city-modal');
+                    const input = document.querySelector('.input-city');
+                    
+                    if (modal && input) {
+                        modal.style.display = 'flex';
+                        if (data.inputValue) {
+                            input.value = data.inputValue;
+                            showSuggestions(data.inputValue);
+                        }
+                        input.focus();
+                    }
                 }
             }, 100);
         }
