@@ -52,6 +52,7 @@ function initModalListeners() {
 
     input.addEventListener('input', function() {
         showSuggestions(this.value);
+        saveToLocalStorage();
     });
 
     document.addEventListener('click', function(event) {
@@ -806,6 +807,7 @@ function showSuggestions(searchText) {
         
         suggestionItem.addEventListener('click', function() {
             document.querySelector('.input-city').value = city;
+            saveToLocalStorage();
             suggestionsList.style.display = 'none';
         });
         
